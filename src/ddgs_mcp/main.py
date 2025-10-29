@@ -26,14 +26,10 @@ _ddgs_client = DDGS()
 def web_search(
     query: Annotated[str, Field(description="Search query string")],
     region: Annotated[
-        str, Field(default="us-en", description="Region code (e.g., us-en, cn-zh)")
+        str, Field(default="cn-zh", description="Region code (e.g., us-en, cn-zh)")
     ],
     max_results: Annotated[
         int, Field(default=10, ge=1, le=100, description="Maximum number of results")
-    ],
-    safesearch: Annotated[
-        str,
-        Field(default="moderate", description="Safe search level: on, moderate, off"),
     ],
     timelimit: Annotated[
         Optional[str], Field(default=None, description="Time limit: d, w, m, y")
@@ -53,7 +49,7 @@ def web_search(
             query=query,
             region=region,
             max_results=max_results,
-            safesearch=safesearch,
+            safesearch="moderate",
             timelimit=timelimit,
             backend=backend,
         )
