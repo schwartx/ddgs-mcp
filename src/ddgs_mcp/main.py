@@ -15,7 +15,7 @@ from ddgs import DDGS
 # Initialize the FastMCP server
 mcp = FastMCP(
     name="DDGS-MCP-Server",
-    instructions="Metasearch server providing web, news search capabilities through DDGS library integration. Offers comprehensive search tools, resource templates, and research prompts.",
+    instructions="Metasearch server providing web, news search capabilities through DDGS library integration. Offers comprehensive search tools and resource templates.",
 )
 
 # Initialize DDGS client
@@ -127,101 +127,6 @@ def news_search_resource(query: str, timelimit: str = "w") -> str:
     )
 
 
-# Prompts
-@mcp.prompt
-def research_prompt(topic: str) -> str:
-    """
-    Generate a comprehensive research prompt with current web information.
-
-    This prompt performs a quick search to provide context for research on the given topic.
-    """
-    try:
-        # Quick search for context
-        results = _ddgs_client.text(topic, max_results=3, safesearch="moderate")
-        context = ""
-        if results:
-            context = "\n".join(
-                [
-                    f"- {r.get('title', 'No title')}: {r.get('body', '')[:200]}..."
-                    for r in results
-                ]
-            )
-
-        return f"""Research Analysis Request
-
-Topic: {topic}
-
-Recent Context:
-{context if context else "No recent context found."}
-
-Please provide a comprehensive analysis of this topic, including:
-
-1. **Current State**: What is the current situation or understanding?
-2. **Key Developments**: What recent changes or events are relevant?
-3. **Important Factors**: What are the critical elements or considerations?
-4. **Future Implications**: What might be the future trends or consequences?
-5. **Knowledge Gaps**: What important information might be missing?
-
-Base your analysis on the provided context and your knowledge, focusing on accuracy and relevance.
-"""
-    except Exception as e:
-        return f"""Research Analysis Request
-
-Topic: {topic}
-
-Note: Unable to fetch recent context due to: {e}
-
-Please provide a comprehensive analysis of this topic based on your knowledge.
-"""
-
-
-@mcp.prompt
-def competitive_analysis_prompt(company_or_product: str) -> str:
-    """
-    Generate a competitive analysis prompt with market information.
-    """
-    try:
-        # Search for company/product and competitors
-        results = _ddgs_client.text(
-            f"{company_or_product} competitors analysis", max_results=3
-        )
-        context = ""
-        if results:
-            context = "\n".join(
-                [
-                    f"- {r.get('title', 'No title')}: {r.get('body', '')[:200]}..."
-                    for r in results
-                ]
-            )
-
-        return f"""Competitive Analysis Request
-
-Subject: {company_or_product}
-
-Market Context:
-{context if context else "No market context found."}
-
-Please provide a thorough competitive analysis including:
-
-1. **Market Position**: Where does this company/product stand in the market?
-2. **Key Competitors**: Who are the main competitors and what are their strengths?
-3. **Competitive Advantages**: What makes this company/product unique?
-4. **Market Trends**: What trends are affecting this market segment?
-5. **Strategic Recommendations**: What strategies could improve competitive position?
-
-Focus on actionable insights and realistic assessments.
-"""
-    except Exception as e:
-        return f"""Competitive Analysis Request
-
-Subject: {company_or_product}
-
-Note: Unable to fetch market context due to: {e}
-
-Please provide a competitive analysis based on your knowledge.
-"""
-
-
 def main() -> None:
     """
     Entry point for the DDGS MCP server.
@@ -252,9 +157,6 @@ Available Resources:
     - search://web/{query}
     - search://news/{query}{?timelimit}
 
-Available Prompts:
-    - research_prompt: Comprehensive research analysis
-    - competitive_analysis_prompt: Market competitive analysis
 """)
         return
 
