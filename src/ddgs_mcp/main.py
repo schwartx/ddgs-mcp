@@ -57,21 +57,22 @@ def web_search(
         )
 
         return {
-            "success": True,
             "query": query,
             "region": region,
+            "backend": backend,
             "results_count": len(results),
             "results": results,
-            "backend": backend,
         }
     except Exception as e:
-        return {"success": False, "error": str(e), "query": query}
+        raise RuntimeError(f"DDGS web search failed: {str(e)}. Check query parameters and backend availability.")
 
 
 @mcp.tool
 def news_search(
     query: Annotated[str, Field(description="News search query")],
-    region: Annotated[str, Field(default="us-en", description="Region code")],
+    region: Annotated[
+        str, Field(default="cn-zh", description="Region code (e.g., us-en, cn-zh)")
+    ],
     max_results: Annotated[
         int, Field(default=10, ge=1, le=100, description="Maximum number of results")
     ],
@@ -93,7 +94,6 @@ def news_search(
         )
 
         return {
-            "success": True,
             "query": query,
             "timelimit": timelimit,
             "backend": backend,
@@ -101,7 +101,7 @@ def news_search(
             "results": results,
         }
     except Exception as e:
-        return {"success": False, "error": str(e), "query": query}
+        raise RuntimeError(f"DDGS news search failed: {str(e)}. Check query parameters and backend availability.")
 
 
 # Resource Templates
