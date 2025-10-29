@@ -1,0 +1,18 @@
+[Unit]
+Description=ddgs mcp
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/ddgs-mcp
+ExecStart=%h/ddgs-mcp/.venv/bin/ddgs-mcp --http
+Restart=on-failure
+
+Environment=DDGS_HTTP_PROXY="http://127.0.0.1:7890"
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+
+
