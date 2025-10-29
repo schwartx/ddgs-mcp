@@ -6,7 +6,6 @@ integrating DDGS (Dux Distributed Global Search) with FastMCP framework.
 """
 
 import json
-import os
 from typing import Annotated
 from pydantic import Field
 import typer
@@ -20,9 +19,8 @@ mcp = FastMCP(
     instructions="Web and news search using DDGS metasearch engine.",
 )
 
-# Initialize DDGS client with proxy from environment variable if available
-_proxy = os.getenv("DDGS_HTTP_PROXY")
-_ddgs_client = DDGS(proxy=_proxy) if _proxy else DDGS()
+# Initialize DDGS client
+_ddgs_client = DDGS()
 
 
 @mcp.tool
@@ -177,9 +175,6 @@ def main(
     This server integrates DDGS (Dux Distributed Global Search) with FastMCP framework
     to provide comprehensive web and news search capabilities.
 
-    Environment Variables:
-        DDGS_HTTP_PROXY    HTTP proxy for DDGS client (e.g., http://proxy:8080)
-
     Examples:
         ddgs-mcp                          # Start server with STDIO transport
         ddgs-mcp --http                   # Start server with HTTP transport
@@ -195,8 +190,7 @@ def main(
         logger.info("Starting DDGS MCP Server with verbose logging")
 
         # Show configuration info
-        proxy_info = f" (proxy: {_proxy})" if _proxy else " (no proxy)"
-        logger.info(f"DDGS client initialized{proxy_info}")
+        logger.info("DDGS client initialized")
 
         if http:
             logger.info(f"Starting HTTP transport on {host}:{port}")
@@ -234,10 +228,6 @@ Available Tools:
 Available Resources:
   • search://web/{query} - Web search results as JSON
   • search://news/{query}{?timelimit} - News search results as JSON
-
-Environment Variables:
-  • DDGS_HTTP_PROXY - HTTP proxy for DDGS client
-    Example: export DDGS_HTTP_PROXY=http://proxy:8080
 
 Examples:
   • ddgs-mcp                    # Start with STDIO transport
@@ -282,10 +272,6 @@ Available Tools:
 Available Resources:
   • search://web/{query} - Web search results as JSON
   • search://news/{query}{?timelimit} - News search results as JSON
-
-Environment Variables:
-  • DDGS_HTTP_PROXY - HTTP proxy for DDGS client
-    Example: export DDGS_HTTP_PROXY=http://proxy:8080
 
 Examples:
   • ddgs-mcp                    # Start with STDIO transport

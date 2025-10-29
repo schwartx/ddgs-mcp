@@ -27,7 +27,7 @@ ddgs-mcp --http
 ### Claude Code Integration
 
 ```
- claude mcp add -s local -t http web-search-ddgs http://127.0.0.1:10090
+ claude mcp add -s local -t http web-search-ddgs http://127.0.0.1:10090/mcp
 ```
 
 ## Available Tools
@@ -42,4 +42,4 @@ ddgs-mcp --http
 
 ## Environment Variables
 
-- `DDGS_HTTP_PROXY`: HTTP proxy URL (e.g., `http://127.0.0.1:7890`)
+- `DDGS_PROXY`: HTTP proxy URL (e.g., `http://127.0.0.1:7890`)
