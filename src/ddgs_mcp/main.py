@@ -6,6 +6,7 @@ integrating DDGS (Dux Distributed Global Search) with FastMCP framework.
 """
 
 import json
+import os
 from typing import Annotated, Optional, Dict, Any
 from pydantic import Field
 
@@ -18,8 +19,9 @@ mcp = FastMCP(
     instructions="Metasearch server providing web, news search capabilities through DDGS library integration. Offers comprehensive search tools and resource templates.",
 )
 
-# Initialize DDGS client
-_ddgs_client = DDGS()
+# Initialize DDGS client with proxy from environment variable if available
+_proxy = os.getenv("DDGS_HTTP_PROXY")
+_ddgs_client = DDGS(proxy=_proxy) if _proxy else DDGS()
 
 
 @mcp.tool
@@ -145,6 +147,9 @@ Usage:
     ddgs-mcp --http             # Start server with HTTP transport on port 8000
     ddgs-mcp --help             # Show this help message
 
+Environment Variables:
+    DDGS_HTTP_PROXY            # HTTP proxy for DDGS client (e.g., http://proxy:8080)
+
 Available Tools:
     - web_search: Web search across multiple engines
     - news_search: News search with time filtering
@@ -156,14 +161,10 @@ Available Resources:
 """)
         return
 
-    # Check for HTTP transport
     if "--http" in sys.argv:
-        print("Starting DDGS MCP Server with HTTP transport on port 8000...")
-        print("MCP endpoint: http://localhost:8000/mcp/")
-        mcp.run(transport="http", host="127.0.0.1", port=8000)
+        mcp.run(transport="http", host="127.0.0.1", port=10090, show_banner=False)
     else:
-        print("Starting DDGS MCP Server with STDIO transport...")
-        mcp.run()
+        mcp.run(show_banner=False)
 
 
 if __name__ == "__main__":
