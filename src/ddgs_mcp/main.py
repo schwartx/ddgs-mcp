@@ -37,7 +37,7 @@ def web_search(
         Optional[str], Field(default=None, description="Time limit: d, w, m, y")
     ] = None,
     backend: Annotated[
-        str, Field(default="auto", description="Search backends (comma-separated)")
+        str, Field(default="auto", description="Search backends: 'auto' or comma-separated list (text: bing,brave,duckduckgo,google,mojeek,mullvad_brave,mullvad_google,yahoo,wikipedia; news: bing,duckduckgo,yahoo)")
     ] = "auto",
 ) -> Dict[str, Any]:
     """
@@ -78,6 +78,9 @@ def news_search(
     timelimit: Annotated[
         Optional[str], Field(default=None, description="Time limit: d, w, m")
     ] = None,
+    backend: Annotated[
+        str, Field(default="auto", description="News backends: 'auto' or comma-separated list from: bing,duckduckgo,yahoo")
+    ] = "auto",
 ) -> Dict[str, Any]:
     """
     Search for news articles using DDGS metasearch.
@@ -86,13 +89,14 @@ def news_search(
     """
     try:
         results = _ddgs_client.news(
-            query=query, region=region, max_results=max_results, timelimit=timelimit
+            query=query, region=region, max_results=max_results, timelimit=timelimit, backend=backend
         )
 
         return {
             "success": True,
             "query": query,
             "timelimit": timelimit,
+            "backend": backend,
             "results_count": len(results),
             "results": results,
         }
