@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ddgs-mcp = "ddgs_mcp.main:main"
+ddgs-mcp = "ddgs_mcp.main:cli_main"
 
 [build-system]
 requires = ["hatchling"]

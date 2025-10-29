@@ -7,8 +7,9 @@ integrating DDGS (Dux Distributed Global Search) with FastMCP framework.
 
 import json
 import os
-from typing import Annotated, Optional, Dict, Any
+from typing import Annotated
 from pydantic import Field
+import typer
 
 from fastmcp import FastMCP
 from ddgs import DDGS
@@ -34,12 +35,16 @@ def web_search(
         int, Field(default=10, ge=1, le=100, description="Maximum number of results")
     ],
     timelimit: Annotated[
-        Optional[str], Field(default=None, description="Time limit: d, w, m, y")
+        str | None, Field(default=None, description="Time limit: d, w, m, y")
     ] = None,
     backend: Annotated[
-        str, Field(default="auto", description="Search backends: 'auto' or comma-separated list (text: bing,brave,duckduckgo,google,mojeek,mullvad_brave,mullvad_google,yahoo,wikipedia; news: bing,duckduckgo,yahoo)")
+        str,
+        Field(
+            default="auto",
+            description="Search backends: 'auto' or comma-separated list (text: bing,brave,duckduckgo,google,mojeek,mullvad_brave,mullvad_google,yahoo,wikipedia; news: bing,duckduckgo,yahoo)",
+        ),
     ] = "auto",
-) -> Dict[str, Any]:
+) -> dict[str, object]:
     """
     Perform web search using DDGS metasearch engine.
 
@@ -64,7 +69,9 @@ def web_search(
             "results": results,
         }
     except Exception as e:
-        raise RuntimeError(f"DDGS web search failed: {str(e)}. Check query parameters and backend availability.")
+        raise RuntimeError(
+            f"DDGS web search failed: {str(e)}. Check query parameters and backend availability."
+        )
 
 
 @mcp.tool
@@ -77,12 +84,16 @@ def news_search(
         int, Field(default=10, ge=1, le=100, description="Maximum number of results")
     ],
     timelimit: Annotated[
-        Optional[str], Field(default=None, description="Time limit: d, w, m")
+        str | None, Field(default=None, description="Time limit: d, w, m")
     ] = None,
     backend: Annotated[
-        str, Field(default="auto", description="News backends: 'auto' or comma-separated list from: bing,duckduckgo,yahoo")
+        str,
+        Field(
+            default="auto",
+            description="News backends: 'auto' or comma-separated list from: bing,duckduckgo,yahoo",
+        ),
     ] = "auto",
-) -> Dict[str, Any]:
+) -> dict[str, object]:
     """
     Search for news articles using DDGS metasearch.
 
@@ -90,7 +101,11 @@ def news_search(
     """
     try:
         results = _ddgs_client.news(
-            query=query, region=region, max_results=max_results, timelimit=timelimit, backend=backend
+            query=query,
+            region=region,
+            max_results=max_results,
+            timelimit=timelimit,
+            backend=backend,
         )
 
         return {
@@ -101,7 +116,9 @@ def news_search(
             "results": results,
         }
     except Exception as e:
-        raise RuntimeError(f"DDGS news search failed: {str(e)}. Check query parameters and backend availability.")
+        raise RuntimeError(
+            f"DDGS news search failed: {str(e)}. Check query parameters and backend availability."
+        )
 
 
 # Resource Templates
@@ -129,47 +146,154 @@ def news_search_resource(query: str, timelimit: str = "w") -> str:
     )
 
 
-def main() -> None:
+# Create typer app instance
+app = typer.Typer(
+    name="ddgs-mcp",
+    help="DDGS MCP Server - Metasearch capabilities through Model Context Protocol",
+    invoke_without_command=True,
+    no_args_is_help=False,
+    add_completion=False,
+)
+
+
+@app.callback(invoke_without_command=True)
+def main(
+    http: bool = typer.Option(
+        False, "--http", help="Start server with HTTP transport instead of STDIO"
+    ),
+    host: str = typer.Option(
+        "0.0.0.0", "--host", help="Host address for HTTP transport (default: 0.0.0.0)"
+    ),
+    port: int = typer.Option(
+        10090, "--port", help="Port number for HTTP transport (default: 10090)"
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose logging output"
+    ),
+) -> None:
     """
-    Entry point for the DDGS MCP server.
+    DDGS MCP Server - Provides search capabilities through Model Context Protocol.
 
-    Run this server to provide search capabilities through MCP.
+    This server integrates DDGS (Dux Distributed Global Search) with FastMCP framework
+    to provide comprehensive web and news search capabilities.
 
-    Usage:
-        ddgs-mcp
+    Environment Variables:
+        DDGS_HTTP_PROXY    HTTP proxy for DDGS client (e.g., http://proxy:8080)
 
-    The server will start with STDIO transport by default.
+    Examples:
+        ddgs-mcp                          # Start server with STDIO transport
+        ddgs-mcp --http                   # Start server with HTTP transport
+        ddgs-mcp --http --port 8080       # Start HTTP server on custom port
+        ddgs-mcp --verbose                # Start with verbose logging
     """
-    import sys
+    # Configure logging if verbose mode is enabled
+    if verbose:
+        import logging
 
-    if "--help" in sys.argv or "-h" in sys.argv:
-        print("""
-DDGS MCP Server - Metasearch capabilities through Model Context Protocol
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+        logger.info("Starting DDGS MCP Server with verbose logging")
 
-Usage:
-    ddgs-mcp                    # Start server with STDIO transport
-    ddgs-mcp --http             # Start server with HTTP transport on port 8000
-    ddgs-mcp --help             # Show this help message
+        # Show configuration info
+        proxy_info = f" (proxy: {_proxy})" if _proxy else " (no proxy)"
+        logger.info(f"DDGS client initialized{proxy_info}")
 
-Environment Variables:
-    DDGS_HTTP_PROXY            # HTTP proxy for DDGS client (e.g., http://proxy:8080)
+        if http:
+            logger.info(f"Starting HTTP transport on {host}:{port}")
+        else:
+            logger.info("Starting STDIO transport")
 
-Available Tools:
-    - web_search: Web search across multiple engines
-    - news_search: News search with time filtering
-
-Available Resources:
-    - search://web/{query}
-    - search://news/{query}{?timelimit}
-
-""")
-        return
-
-    if "--http" in sys.argv:
-        mcp.run(transport="http", host="0.0.0.0", port=10090, show_banner=False)
+    # Start the server with specified transport
+    if http:
+        mcp.run(transport="http", host=host, port=port, show_banner=False)
     else:
         mcp.run(show_banner=False)
 
 
+# Information command
+@app.command()
+def info() -> None:
+    """Display detailed information about the DDGS MCP server."""
+    print("""
+🔍 DDGS MCP Server Information
+
+Server Configuration:
+  • Name: DDGS-MCP-Server
+  • Transport: STDIO (default) or HTTP
+  • Default HTTP Port: 10090
+
+Available Tools:
+  • web_search: Web search across multiple search engines
+    - Parameters: query, region, max_results, timelimit, backend
+    - Backends: Google, Bing, Brave, DuckDuckGo, and more
+
+  • news_search: News search with time-based filtering
+    - Parameters: query, region, max_results, timelimit, backend
+    - Backends: Bing, DuckDuckGo, Yahoo
+
+Available Resources:
+  • search://web/{query} - Web search results as JSON
+  • search://news/{query}{?timelimit} - News search results as JSON
+
+Environment Variables:
+  • DDGS_HTTP_PROXY - HTTP proxy for DDGS client
+    Example: export DDGS_HTTP_PROXY=http://proxy:8080
+
+Examples:
+  • ddgs-mcp                    # Start with STDIO transport
+  • ddgs-mcp --http             # Start with HTTP transport
+  • ddgs-mcp info               # Show this information
+  • ddgs-mcp --help             # Show command help
+""")
+
+
+# Entry point function for the project configuration
+def cli_main() -> None:
+    """Entry point for the ddgs-mcp command."""
+    import sys
+
+    # Check if info command is requested and handle it directly
+    if len(sys.argv) > 1 and sys.argv[1] == "info":
+        show_info()
+        return
+
+    app()
+
+
+def show_info() -> None:
+    """Display detailed information about the DDGS MCP server."""
+    print("""
+🔍 DDGS MCP Server Information
+
+Server Configuration:
+  • Name: DDGS-MCP-Server
+  • Transport: STDIO (default) or HTTP
+  • Default HTTP Port: 10090
+
+Available Tools:
+  • web_search: Web search across multiple search engines
+    - Parameters: query, region, max_results, timelimit, backend
+    - Backends: Google, Bing, Brave, DuckDuckGo, and more
+
+  • news_search: News search with time-based filtering
+    - Parameters: query, region, max_results, timelimit, backend
+    - Backends: Bing, DuckDuckGo, Yahoo
+
+Available Resources:
+  • search://web/{query} - Web search results as JSON
+  • search://news/{query}{?timelimit} - News search results as JSON
+
+Environment Variables:
+  • DDGS_HTTP_PROXY - HTTP proxy for DDGS client
+    Example: export DDGS_HTTP_PROXY=http://proxy:8080
+
+Examples:
+  • ddgs-mcp                    # Start with STDIO transport
+  • ddgs-mcp --http             # Start with HTTP transport
+  • ddgs-mcp info               # Show this information
+  • ddgs-mcp --help             # Show command help
+""")
+
+
 if __name__ == "__main__":
-    main()
+    cli_main()
