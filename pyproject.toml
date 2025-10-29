@@ -1,16 +1,16 @@
 [project]
 name = "ddgs-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server of DDGS"
 readme = "README.md"
 authors = [
     { name = "schwarz", email = "root.schwarz.chan@gmail.com" }
 ]
 requires-python = ">=3.10,<3.14"
 dependencies = [
-    "ddgs",
-    "fastmcp",
-    "pydantic",
+    "ddgs>=9.6.1",
+    "fastmcp>=2.13.0.2",
+    "pydantic>=2.12.3",
 ]
 
 [project.scripts]
