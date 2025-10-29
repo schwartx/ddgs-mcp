@@ -16,7 +16,7 @@ from ddgs import DDGS
 # Initialize the FastMCP server
 mcp = FastMCP(
     name="DDGS-MCP-Server",
-    instructions="Metasearch server providing web, news search capabilities through DDGS library integration. Offers comprehensive search tools and resource templates.",
+    instructions="Web and news search using DDGS metasearch engine.",
 )
 
 # Initialize DDGS client with proxy from environment variable if available
