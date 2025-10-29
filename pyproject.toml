@@ -6,8 +6,12 @@ readme = "README.md"
 authors = [
     { name = "schwarz", email = "root.schwarz.chan@gmail.com" }
 ]
-requires-python = ">=3.14"
-dependencies = []
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "ddgs",
+    "fastmcp",
+    "pydantic"
+]
 
 [project.scripts]
 ddgs-mcp = "ddgs_mcp:main"
